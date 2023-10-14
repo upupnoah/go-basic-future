@@ -8,6 +8,13 @@
 *.so
 *.dylib
 
+# file
+.Ds_Store
+
+# folder
+.idea/
+.vscode/
+
 # Test binary, built with `go test -c`
 *.test
 
