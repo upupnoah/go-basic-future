@@ -1,7 +1,7 @@
 package trace_test
 
 import (
-	trace "github.com/upupnoah/go-basic-future/go-core/practice/defer-trace/instrument_trace"
+	trace "github.com/upupnoah/go-basic-future/go-core-tony/practice/defer-trace/instrument_trace"
 )
 
 func a() {

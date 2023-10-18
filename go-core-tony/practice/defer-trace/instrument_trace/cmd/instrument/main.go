@@ -3,10 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/upupnoah/go-basic-future/go-core/practice/defer-trace/instrument_trace/instrumenter"
-	"github.com/upupnoah/go-basic-future/go-core/practice/defer-trace/instrument_trace/instrumenter/ast"
 	"os"
 	"path/filepath"
+
+	"github.com/upupnoah/go-basic-future/go-core-tony/practice/defer-trace/instrument_trace/instrumenter"
+	"github.com/upupnoah/go-basic-future/go-core-tony/practice/defer-trace/instrument_trace/instrumenter/ast"
 )
 
 var (

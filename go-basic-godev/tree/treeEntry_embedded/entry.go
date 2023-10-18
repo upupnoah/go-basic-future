@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/upupnoah/go-basic-future/go-basic/tree"
+
+	"github.com/upupnoah/go-basic-future/go-basic-godev/tree"
 )
 
 type myTreeNode struct {

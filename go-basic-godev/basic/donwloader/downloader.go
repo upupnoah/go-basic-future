@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"Learn_go/Go-Development-Engineer/basic/donwloader/infra"
+	"github.com/upupnoah/go-basic-future/go-basic-godev/basic/donwloader/infra"
 )
 
 func getRetriever() retriever {
