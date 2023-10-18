@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/upupnoah/go-basic-future/go-basic/queue"
+
+	"github.com/upupnoah/go-basic-future/go-basic-godev/queue"
 )
 
 func main() {

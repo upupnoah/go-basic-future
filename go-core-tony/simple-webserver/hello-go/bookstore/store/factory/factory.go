@@ -2,8 +2,9 @@ package factory
 
 import (
 	"fmt"
-	"github.com/upupnoah/go-basic-future/go-core/simple-webserver/hello-go/bookstore/store"
 	"sync"
+
+	"github.com/upupnoah/go-basic-future/go-core-tony/simple-webserver/hello-go/bookstore/store"
 )
 
 var (

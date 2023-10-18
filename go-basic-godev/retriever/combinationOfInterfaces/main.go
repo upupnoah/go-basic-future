@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/upupnoah/go-basic-future/go-basic/retriever/mock"
-	"github.com/upupnoah/go-basic-future/go-basic/retriever/real"
 	"time"
+
+	"github.com/upupnoah/go-basic-future/go-basic-godev/retriever/mock"
+	"github.com/upupnoah/go-basic-future/go-basic-godev/retriever/real"
 )
 
 const url = "https://www.baidu.com"

@@ -1,9 +1,10 @@
 package store
 
 import (
-	mystore "github.com/upupnoah/go-basic-future/go-core/simple-webserver/hello-go/bookstore/store"
-	"github.com/upupnoah/go-basic-future/go-core/simple-webserver/hello-go/bookstore/store/factory"
 	"sync"
+
+	mystore "github.com/upupnoah/go-basic-future/go-core-tony/simple-webserver/hello-go/bookstore/store"
+	"github.com/upupnoah/go-basic-future/go-core-tony/simple-webserver/hello-go/bookstore/store/factory"
 )
 
 func init() {
