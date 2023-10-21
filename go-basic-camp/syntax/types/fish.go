@@ -1,35 +1,29 @@
 package types
 
 type Fish struct {
+	Name string
 }
 
-func (f Fish) Swim() {
-	println("鱼在游")
+func (f *Fish) Add(index int, val any) {
+	//TODO implement me
+	panic("implement me")
 }
 
-// Yu 鱼
-// 鱼是 Fish 的别名
-type Yu = Fish
-
-type FakeFish struct {
+func (f *Fish) Append(val any) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (f FakeFish) FakeSwim() {
-	println("假的鱼在游")
+func (f *Fish) Delete(index int) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func UseFish() {
-	f1 := Fish{}
-	f1.Swim()
-	f2 := FakeFish{}
-	// f2 将不能调用 Fish 上的方法，
-	// 因为 f2 是一个全新的类型
-	f2.FakeSwim()
-
-	// 类型转换
-	f3 := Fish(f2)
-	f3.Swim()
-
-	y := Yu{}
-	y.Swim()
+func (f *Fish) Swim() {
+	println("I am swimming...")
 }
+
+// 扩展 Fish，但是不想让 Fish 的 Swim 方法被继承
+// 可以访问 Fish 的导出字段
+
+type FakeFish Fish

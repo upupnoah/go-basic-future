@@ -37,24 +37,24 @@ func (u *User) ChangeAge(age int) {
 func NewUser() {
 	// u1 是指向一个 User 对象的指针
 	u1 := &User{}
-	println(u1)
+	fmt.Println(u1)
 
 	// u2 中的字段都是零值
 	u2 := User{}
-	println(u2)
+	fmt.Println(u2)
 	// 修改 u2 的字段
 	u2.Name = "Jerry"
 
 	// u3 中的字段也都是零值
 	var u3 User
-	println(u3)
+	fmt.Println(u3)
 
 	// 初始化的同时，还赋值了 Name
 	var u4 User = User{Name: "Tom"}
-	println(u4)
+	fmt.Println(u4)
 
 	// 没有指定字段名，按照字段顺序赋值
 	// 必须全部赋值
 	var u5 User = User{"Tom", 18}
-	println(u5)
+	fmt.Println(u5)
 }

@@ -1,16 +1,19 @@
 package types
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
 func UseList() {
 	l1 := LinkedList{}
 	l1Ptr := &l1
 	var l2 LinkedList = *l1Ptr
-	println(l2)
+	fmt.Println(l2)
 
 	// 这个是 nil
 	var l3Ptr *LinkedList
-	println(l3Ptr)
+	fmt.Println(l3Ptr)
 }
 
 type List interface {
