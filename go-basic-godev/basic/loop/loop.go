@@ -10,7 +10,7 @@ import (
 )
 
 func convertToBin(n int) string {
-	
+
 	//result := ""
 	//for ; n > 0; n /= 2 {
 	//	lsb := n % 2
@@ -65,7 +65,7 @@ func main() {
 		convertToBin(72387885),
 		convertToBin(1),
 	)
-	printFile("Go-Development-Engineer/simple_WebServer/loop/abc.txt")
+	printFile("go-basic-godev/basic/loop/abc.txt")
 	s := `abc"d"
 	kkkk
 	123

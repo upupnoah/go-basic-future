@@ -23,4 +23,8 @@ func main() {
 
 	a, b = swap2(a, b)
 	fmt.Println(a, b)
+
+	// 交换两个变量的值
+	//a, b = b, a
+	//fmt.Println(a, b)
 }
