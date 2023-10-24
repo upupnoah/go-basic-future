@@ -17,8 +17,34 @@ func TestAdd(t *testing.T) {
 		want    []Src
 		wantErr bool
 	}
-	tests := []testCase[ /* TODO: Insert concrete types here */ ]{
-		// TODO: Add test cases.
+	tests := []testCase[int]{
+		{
+			name: "index middle",
+			args: args[int]{src: []int{1, 2, 3}, element: 4, index: 1},
+			want: []int{1, 4, 2, 3},
+		},
+		{
+			name: "index 0",
+			args: args[int]{src: []int{1, 2, 3}, element: 4, index: 0},
+			want: []int{4, 1, 2, 3},
+		},
+		{
+			name:    "index out of range",
+			args:    args[int]{src: []int{1, 2, 3}, element: 4, index: 12},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "index less than 0",
+			args:    args[int]{src: []int{1, 2, 3}, element: 4, index: -1},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "index last",
+			args: args[int]{src: []int{1, 2, 3}, element: 4, index: 3},
+			want: []int{1, 2, 3, 4},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
