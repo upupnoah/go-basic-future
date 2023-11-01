@@ -40,6 +40,7 @@ func calCapacity(c, l int) (int, bool) {
 	// 如果容量大于 2048，但是元素不足一半，
 	// 降低为 0.625，也就是 5/8
 	// 也就是比一半多一点，和正向扩容的 1.25 倍相呼应
+
 	if c > 2048 && l < c/2 {
 		factor := 0.625
 		return int(float32(c) * float32(factor)), true
@@ -49,5 +50,5 @@ func calCapacity(c, l int) (int, bool) {
 	if c <= 2048 && (c/l > 4) {
 		return c / 2, true
 	}
-	return c, false
+	return c, false //
 }

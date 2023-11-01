@@ -1,23 +1,36 @@
 package main
 
-func main() {
-	var x int32 = 1
-	x = ^(x << 31)
-	println(x)
-	println(x+1, x+2, x+10)
-}
+import (
+	"fmt"
+	"io"
+	"net/http"
+)
 
-type T1[T int | string | ~float64] struct {
-}
+func sendHelloworld() {
+	// helloworld (GET http://localhost:8080/hello)
 
-type myInterface interface {
-	comparable
-	int | string | ~float64
-}
+	// Create client
+	client := &http.Client{}
 
-func maxstring[T string](a, b T) T {
-	if a > b {
-		return a
+	// Create request
+	req, err := http.NewRequest("GET", "http://localhost:8080/hello", nil)
+
+	// Fetch Request
+	resp, err := client.Do(req)
+
+	if err != nil {
+		fmt.Println("Failure : ", err)
 	}
-	return b
+
+	// Read Response Body
+	respBody, _ := io.ReadAll(resp.Body)
+
+	// Display Results
+	fmt.Println("response Status : ", resp.Status)
+	fmt.Println("response Headers : ", resp.Header)
+	fmt.Println("response Body : ", string(respBody))
+}
+
+func main() {
+	sendHelloworld()
 }
