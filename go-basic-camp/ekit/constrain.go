@@ -1,5 +1,8 @@
 package ekit
 
+// 这个文件用于定义一些通用的约束类型
+// 暴露给用户使用
+
 // RealNumber 实数
 // 绝大多数情况下，你都应该用这个来表达数字的含义
 type RealNumber interface {
