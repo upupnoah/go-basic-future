@@ -3,6 +3,8 @@ module github.com/upupnoah/go-basic-future
 go 1.21.3
 
 require (
+	github.com/dlclark/regexp2 v1.10.0
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/mux v1.8.0
 	github.com/gpmgo/gopm v0.6.5
