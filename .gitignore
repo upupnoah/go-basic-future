@@ -14,6 +14,8 @@
 # folder
 .idea/
 .vscode/
+node_modules/
+.next/
 
 # Test binary, built with `go test -c`
 *.test
