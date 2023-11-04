@@ -29,7 +29,7 @@ func NewHandler() *Handler {
 func (h *Handler) RegisterRoutesV1(ug *gin.RouterGroup) {
 	//ug := router.Group("/users")
 	ug.GET("/profile", h.Profile)
-	ug.POST("/login", h.Login) 
+	ug.POST("/login", h.Login)
 	ug.POST("/signup", h.Signup)
 	ug.POST("/edit", h.Edit)
 }
@@ -92,7 +92,6 @@ func (h *Handler) Signup(c *gin.Context) {
 	fmt.Printf("%v\n", req)
 
 	// 下边是数据库操作
-
 }
 
 func (h *Handler) Edit(c *gin.Context) {

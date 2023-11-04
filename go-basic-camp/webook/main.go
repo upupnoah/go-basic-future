@@ -24,7 +24,6 @@ func main() {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
-
 	u := user.NewHandler()
 	u.RegisterRoutesV1(engine.Group("/users"))
 
