@@ -20,6 +20,9 @@ func main() {
 			if strings.HasPrefix(origin, "http://localhost:3000") {
 				return true
 			}
+			if strings.HasPrefix(origin, "http://localhost:3001") {
+				return true
+			}
 			return strings.Contains(origin, "your custom domain...")
 		},
 		MaxAge: 12 * time.Hour,
