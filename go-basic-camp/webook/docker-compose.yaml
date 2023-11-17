@@ -16,12 +16,12 @@ services:
       args:
         - http_proxy=http://192.168.31.178:7890
         - https_proxy=http://192.168.31.178:7890
-  # redis:
-  #   image: 'bitnami/redis:7.2'
-  #   environment:
-  #     - ALLOW_EMPTY_PASSWORD=yes
-  #   ports:
-  #     - '6379:6379'
+  redis:
+    image: 'bitnami/redis:7.2'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
   #  etcd:
   #    image: 'bitnami/etcd:3.5'
   #    environment:
