@@ -1,0 +1,32 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /ping                     --> main.main.func1 (3 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8081
+[GIN] 2024/02/03 - 22:35:16 | 200 |       13.91µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:17 | 200 |        5.98µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:17 | 200 |       12.64µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |           8µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.92µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.16µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.52µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.33µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.92µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:18 | 200 |        5.82µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |        5.61µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |         5.6µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |        5.82µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |        5.08µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |        10.9µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |       12.57µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:19 | 200 |        5.27µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:20 | 200 |        5.79µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:20 | 200 |        5.24µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:20 | 200 |         6.3µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:20 | 200 |        5.15µs |       127.0.0.1 | GET      "/ping"
+[GIN] 2024/02/03 - 22:35:20 | 200 |        6.08µs |       127.0.0.1 | GET      "/ping"
