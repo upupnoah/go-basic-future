@@ -28,3 +28,4 @@ node_modules/
 
 # Go workspace file
 go.work
+__debug_bin*
