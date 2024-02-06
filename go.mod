@@ -7,17 +7,20 @@ require (
 	github.com/ecodeclub/ekit v0.0.8
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/sessions v0.0.5
+	github.com/gin-gonic/autotls v0.0.5
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-playground/validator/v10 v10.14.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gpmgo/gopm v0.6.5
+	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.3
-	github.com/wuqinqiang/easyfsm v1.1.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.14.0
+	golang.org/x/sync v0.4.0
 	golang.org/x/tools v0.14.0
 	golang.org/x/tour v0.1.0
 	gorm.io/driver/mysql v1.5.2
@@ -34,7 +37,6 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.14.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gorilla/context v1.1.1 // indirect
