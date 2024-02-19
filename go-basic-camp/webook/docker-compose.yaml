@@ -1,0 +1,20 @@
+services:
+  mysql8:
+    image: mysql:latest
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+    # 这里并没有设置持久化的卷, 因此每次 restart 数据都会丢失
+      - ./script/mysql/:/docker-entrypoint-initdb.d/ #设置初始化脚本
+    ports: 
+      # 注意这里映射为 13316 端口
+      - "13316:3306"
+  redis:
+    image: 'bitnami/redis:latest'
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
