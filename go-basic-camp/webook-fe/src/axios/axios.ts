@@ -3,6 +3,7 @@ import router from "next/router";
 const instance = axios.create({
     // 修改对应的配置文件
     baseURL: "http://192.168.31.38:8099", // 若部署到云服务器上，需要修改为云服务器的地址
+    // baseURL: "http://localhost:8099",
     withCredentials: true
 })
 

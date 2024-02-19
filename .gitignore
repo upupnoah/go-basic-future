@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+*.pem
 
 # file
 .Ds_Store
@@ -16,6 +17,7 @@
 .vscode/
 node_modules/
 .next/
+.history/
 
 # Test binary, built with `go test -c`
 *.test
