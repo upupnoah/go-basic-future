@@ -1,10 +1,13 @@
 package web
 
 import (
+	"errors"
+	"log"
 	"net/http"
+	"time"
 
 	regexp "github.com/dlclark/regexp2"
-	"github.com/gin-contrib/sessions"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/domain"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
 
@@ -16,7 +19,7 @@ const (
 	emailRegexPattern = `^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`
 
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
-	userIdKey            = "user_id"
+	//userIdKey            = "user_id"
 	// bizLogin  = "login"
 )
 
@@ -26,7 +29,7 @@ type UserHandler struct {
 	svc              *service.UserService
 }
 
-// TODO: add params
+// NewUserHandler New UserHandler
 func NewUserHandler(svc *service.UserService) *UserHandler {
 	return &UserHandler{
 		emailRegexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
@@ -35,14 +38,14 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 	}
 }
 
-func (u *UserHandler) RegisterRoutes(srv *gin.Engine) {
+func (uh *UserHandler) RegisterRoutes(srv *gin.Engine) {
 	// srv.POST("/api/user", u.SignUp) // User sign up
 	// srv.POST("/api/user/login", u.Login) // User login
 
-	srv.POST("/users/signup", u.SignUp)  // User sign up
-	srv.POST("/users/login", u.Login)    // User login
-	srv.POST("/users/edit", u.Edit)      // User edit
-	srv.GET("/users/profile", u.Profile) // User profile
+	srv.POST("/users/signup", uh.SignUp)  // User sign up
+	srv.POST("/users/login", uh.LoginJWT) // User login
+	srv.POST("/users/edit", uh.Edit)      // User edit
+	srv.GET("/users/profile", uh.Profile) // User profile
 }
 
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
@@ -82,7 +85,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	})
-	if err == service.ErrUserDuplicateEmail {
+	if errors.Is(err, service.ErrUserDuplicateEmail) {
 		ctx.String(http.StatusOK, "email duplicate, please use another email")
 		return
 	}
@@ -93,7 +96,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "signup success")
 }
 
-func (uh *UserHandler) Login(ctx *gin.Context) {
+func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
 	type LoginReq struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -102,31 +105,67 @@ func (uh *UserHandler) Login(ctx *gin.Context) {
 	if err := ctx.BindJSON(&req); err != nil {
 		return
 	}
-
-	// u, err := u.svc.Login(ctx.Request.Context(), domain.User{
-	// 	Email:    req.Email,
-	// 	Password: req.Password,
-	// })
 	u, err := uh.svc.Login(ctx.Request.Context(), domain.User{
 		Email:    req.Email,
 		Password: req.Password,
 	})
-	if err == service.ErrInvalidUserOrPassword {
+	if errors.Is(err, service.ErrInvalidUserOrPassword) {
 		ctx.String(http.StatusOK, "invalid email or password, please try again")
 		return
 	}
+	// JWT token
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		UserClaims{
+			Id: u.Id,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+			},
+		})
+	tokenStr, err := t.SignedString(JWTKey) // 这个 key 是关键
 	if err != nil {
+		log.Println("jwt.SignedString error: ", err)
 		ctx.String(http.StatusOK, "server error, login failed")
 		return
 	}
-	session := sessions.Default(ctx)
-	session.Set("user_id", u.Id)
-	session.Options(sessions.Options{
-		MaxAge: 30 * 60, // 30min
-	})
-	session.Save()
+	ctx.Header("x-jwt-token", tokenStr)
+
 	ctx.String(http.StatusOK, "login success")
 }
+
+// func (uh *UserHandler) Login(ctx *gin.Context) {
+// 	type LoginReq struct {
+// 		Email    string `json:"email"`
+// 		Password string `json:"password"`
+// 	}
+// 	var req LoginReq
+// 	if err := ctx.BindJSON(&req); err != nil {
+// 		return
+// 	}
+
+// 	// u, err := u.svc.Login(ctx.Request.Context(), domain.User{
+// 	// 	Email:    req.Email,
+// 	// 	Password: req.Password,
+// 	// })
+// 	u, err := uh.svc.Login(ctx.Request.Context(), domain.User{
+// 		Email:    req.Email,
+// 		Password: req.Password,
+// 	})
+// 	if err == service.ErrInvalidUserOrPassword {
+// 		ctx.String(http.StatusOK, "invalid email or password, please try again")
+// 		return
+// 	}
+// 	if err != nil {
+// 		ctx.String(http.StatusOK, "server error, login failed")
+// 		return
+// 	}
+// 	session := sessions.Default(ctx)
+// 	session.Set("user_id", u.Id)
+// 	session.Options(sessions.Options{
+// 		MaxAge: 30 * 60, // 30min
+// 	})
+// 	session.Save()
+// 	ctx.String(http.StatusOK, "login success")
+// }
 
 func (uh *UserHandler) Logout(ctx *gin.Context) {
 
@@ -139,9 +178,13 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 	type ProfileResp struct {
 		Email string `json:"email"`
 	}
-	session := sessions.Default(ctx)
-	id := session.Get(userIdKey).(int64)
-	u, err := uh.svc.Profile(ctx, id)
+	v, _ := ctx.Get("user")
+	userClaims, ok := v.(UserClaims)
+	if !ok {
+		ctx.String(http.StatusOK, "server error")
+		return
+	}
+	u, err := uh.svc.Profile(ctx, userClaims.Id)
 	if err != nil {
 		// 按理说这里的 id 应该是存在的, 如果不存在, 说明有问题
 		ctx.String(http.StatusOK, "server error")

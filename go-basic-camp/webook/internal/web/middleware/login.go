@@ -29,47 +29,32 @@ func NewLoginMiddlewareBuilder() *LoginMiddlewareBuilder {
 // CheckLogin 检查用户是否登录(除了 login 和 signup 之外的路径)
 func (lmb *LoginMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		session := sessions.Default(ctx)
 		if _, ok := lmb.ignorePaths[ctx.Request.URL.Path]; ok {
 			ctx.Next()
 			return
 		}
-		id := session.Get("user_id")
-		// 未登录, 无权继续访问
-		if id == nil {
+		sess := sessions.Default(ctx)
+		// 验证一下就可以
+		if sess.Get("userId") == nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
-			// ctx.Redirect(http.StatusFound, "/users/login") // 重定向到登录页面
-
-			return // 到此为止, 不再执行后续的中间件
+			return
 		}
-		session.Set("user_id", id)
-		updateTime := session.Get("update_time")
-		now := time.Now()
-		if updateTime == nil { // 第一次登录
-			session.Set("update_time", now)
-			session.Options(sessions.Options{
-				MaxAge: 30 * 60,
+		//ctx.Next()
+		const timeKey = "update_time"
+		val := sess.Get(timeKey)
+		updateTime, ok := val.(time.Time)
+		// 处于演示效果，整个 session 的过期时间是 1 分钟，所以这里十秒钟刷新一次
+		// val == nil 是说明刚登录成功
+		// 我们不在登录里面初始化这个 update_time，是因为它属于"刷新"机制，而不属于登录机制
+		if val == nil || (ok && time.Since(updateTime) > time.Second*10) {
+			sess.Options(sessions.Options{
+				MaxAge: 60,
 			})
-			if err := session.Save(); err != nil {
+			sess.Set(timeKey, time.Now())
+			if err := sess.Save(); err != nil {
 				panic(err)
 			}
-			return
 		}
-		updateTimeVal, ok := updateTime.(time.Time)
-		if !ok {
-			ctx.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		// 维护 session 的活跃状态, 当前时间与上次更新时间相差超过 1 分钟, 则更新
-		if now.Sub(updateTimeVal) > time.Minute {
-			session.Set("update_time", now)
-			session.Save()
-			return
-		}
-		session.Set("update_time", now)
-
-		// 通行
-		ctx.Next()
 	}
 }
 
