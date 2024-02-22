@@ -6,6 +6,7 @@ import (
 
 type UserClaims struct {
 	Id int64
+	UserAgent string
 	jwt.RegisteredClaims
 }
 
