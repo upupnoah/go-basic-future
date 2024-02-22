@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
+	redisV9 "github.com/redis/go-redis/v9"
+
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository"
@@ -14,6 +16,7 @@ import (
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/web"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/web/middleware"
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/pkg/ginx/middleware/ratelimit"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -26,7 +29,10 @@ func main() {
 	db := initDB()
 	srv := initWebServer()
 	initUser(srv, db)
-	srv.Run(":8099")
+	err := srv.Run(":8099")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func initDB() *gorm.DB {
@@ -46,12 +52,14 @@ func initDB() *gorm.DB {
 func initWebServer() *gin.Engine {
 	gin.ForceConsoleColor()
 	srv := gin.Default()
-	srv.SetTrustedProxies(nil) // 解决 [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+	// 解决 [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+	err := srv.SetTrustedProxies(nil)
+	if err != nil {
+		panic(err)
+	}
 	srv.Use(cors.New(cors.Config{
 		// AllowOrigins: []string{"*"},
-		AllowMethods: []string{"POST"},
-		AllowHeaders: []string{"Content-Type", "Authorization"},
-		//ExposeHeaders:    []string{"Content-Length"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 		ExposeHeaders:    []string{"x-jwt-token"}, // 允许前端获取这个响应头
 		AllowOriginFunc: func(origin string) bool {
@@ -62,6 +70,11 @@ func initWebServer() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
+	redisClient := redisV9.NewClient(&redisV9.Options{
+		Addr: "localhost:6379",
+	})
+	// 限流: 1s 100次
+	srv.Use(ratelimit.NewBuilder(redisClient, time.Second, 100).Build())
 
 	// store := cookie.NewStore([]byte("secret"))
 
@@ -74,8 +87,8 @@ func initWebServer() *gin.Engine {
 	}
 	srv.Use(sessions.Sessions("WebookSession", store))
 
-	lmb := middleware.NewLoginMiddlewareBuilder()
-	srv.Use(lmb.SetIgnorePaths("/users/login", "/users/signup").CheckLogin())
+	ljmb := middleware.NewLoginJWTMiddlewareBuilder()
+	srv.Use(ljmb.SetIgnorePaths("/users/login", "/users/signup").CheckLoginJWT())
 	return srv
 }
 

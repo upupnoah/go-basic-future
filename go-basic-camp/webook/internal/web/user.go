@@ -116,7 +116,8 @@ func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
 	// JWT token
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		UserClaims{
-			Id: u.Id,
+			Id:        u.Id,
+			UserAgent: ctx.GetHeader("User-Agent"),
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
 			},

@@ -46,6 +46,7 @@ func (ljmb *LoginJWTMiddlewareBuilder) CheckLoginJWT() gin.HandlerFunc {
 			return
 		}
 
+		// 解析 token
 		tokenStr := authSegments[1]
 		uc := web.UserClaims{}
 		token, err := jwt.ParseWithClaims(
@@ -61,6 +62,17 @@ func (ljmb *LoginJWTMiddlewareBuilder) CheckLoginJWT() gin.HandlerFunc {
 			return
 		}
 
+		// 通过 Claims 检查 UserAgent
+		// 对于攻击者来说, 花费的代价更大
+		if uc.UserAgent != ctx.Request.UserAgent() {
+			// 不正确的 UserAgent, 安全问题
+			// 需要加监控
+			log.Println("UserAgent not match:", uc.UserAgent, ctx.Request.UserAgent())
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		// 检查 token 是否过期
 		expireTime, err := uc.GetExpirationTime()
 		if err != nil {
 			// 拿不到过期时间
