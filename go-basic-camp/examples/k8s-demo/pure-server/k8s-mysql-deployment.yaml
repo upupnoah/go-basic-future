@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pure-mysql
+  namespace: default
+  labels:
+    app: pure-mysql
+spec:
+  selector:
+    matchLabels:
+      app: pure-mysql
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  # pod (相当于虚拟机)
+  template:
+    metadata:
+      labels:
+        app: pure-mysql
+    spec:
+      # initContainers:
+      # Init containers are exactly like regular containers, except:
+      # - Init containers always run to completion.
+      # - Each init container must complete successfully before the next one starts.
+      containers:
+        - name: pure-mysql
+          image: mysql:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            # requests:
+            #   cpu: 100m
+            #   memory: 100Mi
+            limits:
+              cpu: "1"
+              memory: 1024Mi
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: 80
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 5
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          #   periodSeconds: 10
+          # readinessProbe:
+          #   httpGet:
+          #     path: /_status/healthz
+          #     port: 80
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 2
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          #   periodSeconds: 10
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            # - name: DB_HOST
+            #   valueFrom:
+            #     configMapKeyRef:
+            #       name: pure-mysql
+            #       key: DB_HOST
+          ports:
+            - containerPort: 3306
+          #     name: pure-mysql
+          volumeMounts:
+            # 具体使用下面 volumes 里面的哪个持久化存储卷
+            - name: mysql-persistent-storage
+            # 这里需要对应到 mysql 数据存储的位置
+              mountPath: /var/lib/mysql
+      # pod 中有几个持久化存储卷
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+      restartPolicy: Always

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pureserver
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pureserver
+
+  template:
+    metadata:
+      name: pureserver
+      labels:
+        app: pureserver
+# pod 的具体信息
+    spec:
+      containers:
+        - name: pureserver
+          image: noahouo/pure-server:v0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8999  
+          resources:
+            limits:
+              cpu: "1"
+              memory: "256Mi"
