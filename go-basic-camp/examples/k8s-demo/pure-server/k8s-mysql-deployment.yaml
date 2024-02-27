@@ -63,11 +63,11 @@ spec:
             #       key: DB_HOST
           ports:
             - containerPort: 3306
-          #     name: pure-mysql
+              name: pure-mysql
           volumeMounts:
             # 具体使用下面 volumes 里面的哪个持久化存储卷
             - name: mysql-persistent-storage
-            # 这里需要对应到 mysql 数据存储的位置
+            # 这里一定要对应到 mysql 数据存储的位置
               mountPath: /var/lib/mysql
       # pod 中有几个持久化存储卷
       volumes:

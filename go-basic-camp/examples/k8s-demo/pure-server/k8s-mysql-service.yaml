@@ -6,7 +6,7 @@ metadata:
 spec:
   selector:
     app: pure-mysql
-  type: LoadBalancer
+  type: NodePort
   # sessionAffinity: None
   # sessionAffinityConfig:
   #   clientIP:
@@ -14,8 +14,8 @@ spec:
   ports:
   - name: pure-mysql
     protocol: TCP
-    port: 3318
+    port: 11306
     targetPort: 3306
     # If you set the `spec.type` field to `NodePort` and you want a specific port number,
     # you can specify a value in the `spec.ports[*].nodePort` field.
-    # nodePort: 30018
+    nodePort: 30006
