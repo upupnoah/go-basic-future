@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pure-redis
+  namespace: default
+  labels:
+    app: pure-redis
+spec:
+  selector:
+    matchLabels:
+      app: pure-redis
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pure-redis
+    spec:
+      # initContainers:
+      # Init containers are exactly like regular containers, except:
+      # - Init containers always run to completion.
+      # - Each init container must complete successfully before the next one starts.
+      containers:
+        - name: pure-redis
+          image: redis:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            # requests:
+            #   cpu: 100m
+            #   memory: 100Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: 80
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 5
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          #   periodSeconds: 10
+          # readinessProbe:
+          #   httpGet:
+          #     path: /_status/healthz
+          #     port: 80
+          #   initialDelaySeconds: 5
+          #   timeoutSeconds: 2
+          #   successThreshold: 1
+          #   failureThreshold: 3
+          #   periodSeconds: 10
+          # env:
+          # - name: DB_HOST
+          #   valueFrom:
+          #     configMapKeyRef:
+          #       name: pure-redis
+          #       key: DB_HOST
+          # ports:
+          #   - containerPort: 80
+          #     name: pure-redis
+          # volumeMounts:
+          #   - name: localtime
+          #     mountPath: /etc/localtime
+      # volumes:
+      # - name: localtime
+      #   hostPath:
+      #     path: /usr/share/zoneinfo/Asia/Shanghai
+      restartPolicy: Always

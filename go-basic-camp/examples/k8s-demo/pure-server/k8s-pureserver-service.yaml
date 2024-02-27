@@ -8,5 +8,6 @@ spec:
     app: pureserver
   ports:
   - protocol: TCP
+    name: http
     port: 8999
     targetPort: 8999
