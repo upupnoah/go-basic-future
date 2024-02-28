@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webook-mysql
+  namespace: default
+spec:
+  selector:
+    app: webook-mysql
+  type: NodePort
+  # sessionAffinity: None
+  # sessionAffinityConfig:
+  #   clientIP:
+  #     timeoutSeconds: 10800
+  ports:
+  - name: webook-mysql
+    protocol: TCP
+    port: 13306
+    targetPort: 3306
+    # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+    # you can specify a value in the `spec.ports[*].nodePort` field.
+    nodePort: 30006

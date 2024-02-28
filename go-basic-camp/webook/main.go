@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/config"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository/dao"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
@@ -23,6 +24,7 @@ import (
 
 func init() {
 	gob.Register(time.Time{}) // 用于 session 的序列化
+	gin.ForceConsoleColor()   // 强制控制台颜色
 }
 
 func main() {
@@ -36,7 +38,7 @@ func main() {
 }
 
 func initDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/webook"))
+	db, err := gorm.Open(mysql.Open(config.Config.DB.DSN))
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +52,6 @@ func initDB() *gorm.DB {
 }
 
 func initWebServer() *gin.Engine {
-	gin.ForceConsoleColor()
 	srv := gin.Default()
 	// 解决 [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 	err := srv.SetTrustedProxies(nil)
@@ -66,12 +67,15 @@ func initWebServer() *gin.Engine {
 			if strings.HasPrefix(origin, "http://localhost") {
 				return true
 			}
+			if strings.HasPrefix(origin, "http://noah.webook.com") {
+				return true
+			}
 			return strings.Contains(origin, "your custom domain...")
 		},
 		MaxAge: 12 * time.Hour,
 	}))
 	redisClient := redisV9.NewClient(&redisV9.Options{
-		Addr: "localhost:6379",
+		Addr: config.Config.Redis.Addr,
 	})
 	// 限流: 1s 100次
 	srv.Use(ratelimit.NewBuilder(redisClient, time.Second, 100).Build())
@@ -81,7 +85,7 @@ func initWebServer() *gin.Engine {
 	// memstore
 	// store := memstore.NewStore([]byte("TL0qRTxsVIfQ25l4TFMXj8XRfPwb6MgO"), []byte("Ojtmwv5Xbx1YP513SVnrpXx8wHyBhSa0"))
 	// redis store
-	store, err := redis.NewStore(16, "tcp", "localhost:6379", "", []byte(""))
+	store, err := redis.NewStore(16, "tcp", config.Config.Redis.Addr, config.Config.Redis.Password, []byte(""))
 	if err != nil {
 		panic(err)
 	}

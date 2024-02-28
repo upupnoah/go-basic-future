@@ -1,6 +1,6 @@
 package config
 
-type WebookConfig struct {
+type webookConfig struct {
 	DB    DBConfig
 	Redis RedisConfig
 }
