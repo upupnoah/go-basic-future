@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webook-server
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webook-server
+
+  template:
+    metadata:
+      name: webook-server
+      labels:
+        app: webook-server
+    # pod 的具体信息
+    spec:
+      containers:
+        - name: webook-server
+          image: noahouo/webook-server-k8s:v0.0.4
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8099
+              name: webook-server
+          resources:
+            limits:
+              cpu: "1"
+              memory: "256Mi"

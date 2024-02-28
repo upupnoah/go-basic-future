@@ -1,6 +1,8 @@
+//go:build !k8s
 package config
 
-var Config = WebookConfig{
+// Config dev 配置
+var Config = webookConfig{
 	DB: DBConfig{
 		DSN: "root:root@tcp(localhost:13316)/webook",
 	},
