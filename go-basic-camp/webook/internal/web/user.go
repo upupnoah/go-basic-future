@@ -119,7 +119,7 @@ func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
 			Id:        u.Id,
 			UserAgent: ctx.GetHeader("User-Agent"),
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 20)),
 			},
 		})
 	tokenStr, err := t.SignedString(JWTKey) // 这个 key 是关键
