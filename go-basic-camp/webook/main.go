@@ -7,17 +7,19 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	redisV9 "github.com/redis/go-redis/v9"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/config"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository/dao"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/web"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/web/middleware"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/pkg/ginx/middleware/ratelimit"
 )
 
 func init() {
@@ -72,11 +74,11 @@ func initWebServer() *gin.Engine {
 		},
 		MaxAge: 12 * time.Hour,
 	}))
-	// redisClient := redisV9.NewClient(&redisV9.Options{
-	// 	Addr: config.Config.Redis.Addr,
-	// })
+	redisClient := redisV9.NewClient(&redisV9.Options{
+		Addr: config.Config.Redis.Addr,
+	})
 	// 限流: 1s 100次 (压测的时候去掉)
-	// srv.Use(ratelimit.NewBuilder(redisClient, time.Second, 100).Build())
+	srv.Use(ratelimit.NewBuilder(redisClient, time.Second, 100).Build())
 
 	// store := cookie.NewStore([]byte("secret"))
 
