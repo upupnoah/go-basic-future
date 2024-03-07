@@ -12,7 +12,7 @@ import (
 )
 
 // var ErrKeyNotExist = redis.Nil
-var ErrCacheMiss = errors.New("cache: miss")
+var ErrCacheMiss = errors.New("cache: miss") 
 
 type UserCache struct {
 	cmd        redis.Cmdable
@@ -26,6 +26,7 @@ func NewUserCache(cmd redis.Cmdable) *UserCache {
 	}
 }
 
+// 
 func (uc *UserCache) Get(ctx context.Context, id int64) (domain.User, error) {
 	key := uc.key(id)
 	data, err := uc.cmd.Get(ctx, key).Result()

@@ -9,6 +9,11 @@ import (
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service/sms"
 )
 
+var (
+	ErrCodeSendTooMany        = repository.ErrCodeSendTooMany
+	ErrCodeVerifyTooManyTimes = repository.ErrCodeVerifyTooManyTimes
+)
+
 // 短信 Template ID (对应云平台的模板 ID)
 const codeTplId = "112234"
 
@@ -26,6 +31,7 @@ func NewCodeService(repo repository.CodeRepository, sms sms.Service) *SMSCodeSer
 
 func (svc *SMSCodeService) Send(ctx context.Context, biz, phone string) error {
 	code := svc.generateCode()
+	fmt.Println()
 	// 先 store
 	err := svc.repo.Store(ctx, biz, phone, code)
 	if err != nil {
@@ -39,6 +45,10 @@ func (svc *SMSCodeService) Send(ctx context.Context, biz, phone string) error {
 		return err
 	}
 	return nil
+}
+
+func (svc *SMSCodeService) Verify(ctx context.Context, biz, phone, code string) (bool, error) {
+	return svc.repo.Verify(ctx, biz, phone, code)
 }
 
 func (svc *SMSCodeService) generateCode() string {

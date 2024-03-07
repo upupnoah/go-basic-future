@@ -2,16 +2,16 @@ package web
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
 	regexp "github.com/dlclark/regexp2"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/domain"
-	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
-
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/domain"
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository/cache"
+	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service"
 )
 
 const (
@@ -19,33 +19,137 @@ const (
 	emailRegexPattern = `^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$`
 
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
+
+	phoneRegexPattern = `^1[3-9]\d{9}$`
 	//userIdKey            = "user_id"
-	// bizLogin  = "login"
+	bizLogin = "user/login"
 )
 
 type UserHandler struct {
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
+	phoneRegexExp    *regexp.Regexp
 	svc              *service.UserService
+	codeService      *service.SMSCodeService
 }
 
 // NewUserHandler New UserHandler
-func NewUserHandler(svc *service.UserService) *UserHandler {
+func NewUserHandler(svc *service.UserService, codeSvc *service.SMSCodeService) *UserHandler {
 	return &UserHandler{
 		emailRegexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		phoneRegexExp:    regexp.MustCompile(phoneRegexPattern, regexp.None),
 		svc:              svc,
+		codeService:      codeSvc,
 	}
 }
 
 func (uh *UserHandler) RegisterRoutes(srv *gin.Engine) {
 	// srv.POST("/api/user", u.SignUp) // User sign up
 	// srv.POST("/api/user/login", u.Login) // User login
+	ug := srv.Group("/users")
 
-	srv.POST("/users/signup", uh.SignUp)  // User sign up
-	srv.POST("/users/login", uh.LoginJWT) // User login
-	srv.POST("/users/edit", uh.Edit)      // User edit
-	srv.GET("/users/profile", uh.Profile) // User profile
+	ug.GET("/profile", uh.Profile)
+	ug.POST("/signup", uh.SignUp)
+	ug.POST("/login", uh.LoginJWT)
+	ug.POST("/logout", uh.Logout)
+	ug.POST("/edit", uh.Edit)
+	ug.POST("/login_sms/code/send", uh.SendLoginSMSCode)
+	ug.POST("/login_sms", uh.LoginSMS)
+}
+
+func (uh *UserHandler) LoginSMS(ctx *gin.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+		Code  string `json:"code"`
+	}
+	var req Req
+	err := ctx.Bind(&req)
+	if err != nil {
+		return
+	}
+	ok, err := uh.codeService.Verify(ctx, bizLogin, req.Phone, req.Code)
+	if !ok && err == nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "verification code error!",
+		})
+		return
+	}
+	if err == cache.ErrCodeVerifyTooManyTimes {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "Verification attempts exceeded!",
+		})
+		return
+	}
+
+	// login or signup
+	u, err := uh.svc.FindOrCreate(ctx, req.Phone)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "server error",
+		})
+		return
+	}
+
+	err = uh.setJWTToken(ctx, u.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Msg: "server error",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, Result{
+		Msg: "login success",
+	})
+}
+
+func (uh *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// validate phone
+	ok, err := uh.phoneRegexExp.MatchString(req.Phone)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "server error",
+		})
+		return
+	}
+	if !ok {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "Invalid phone number",
+		})
+		return
+	}
+	
+	err = uh.codeService.Send(ctx, bizLogin, req.Phone)
+	if err != nil {
+		if err == cache.ErrCodeSendTooMany {
+			ctx.JSON(http.StatusOK, Result{
+				Code: 5,
+				Msg:  "verification code send too many times!",
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "server error",
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Msg: "send success",
+	})
 }
 
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
@@ -85,7 +189,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	})
-	if errors.Is(err, service.ErrUserDuplicateEmail) {
+	if errors.Is(err, service.ErrUserDuplicateUser) {
 		ctx.String(http.StatusOK, "email duplicate, please use another email")
 		return
 	}
@@ -113,24 +217,31 @@ func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "invalid email or password, please try again")
 		return
 	}
+
 	// JWT token
+	if err := uh.setJWTToken(ctx, u.Id); err != nil {
+		ctx.String(http.StatusOK, "server error")
+		return
+	}
+
+	ctx.String(http.StatusOK, "login success")
+}
+
+func (*UserHandler) setJWTToken(ctx *gin.Context, uid int64) error {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		UserClaims{
-			Id:        u.Id,
+			Uid:       uid,
 			UserAgent: ctx.GetHeader("User-Agent"),
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 20)),
 			},
 		})
-	tokenStr, err := t.SignedString(JWTKey) // 这个 key 是关键
+	tokenStr, err := t.SignedString(JWTKey)
 	if err != nil {
-		log.Println("jwt.SignedString error: ", err)
-		ctx.String(http.StatusOK, "server error, login failed")
-		return
+		return err
 	}
 	ctx.Header("x-jwt-token", tokenStr)
-
-	ctx.String(http.StatusOK, "login success")
+	return nil
 }
 
 // func (uh *UserHandler) Login(ctx *gin.Context) {
@@ -176,21 +287,28 @@ func (uh *UserHandler) Edit(ctx *gin.Context) {
 }
 
 func (uh *UserHandler) Profile(ctx *gin.Context) {
-	type ProfileResp struct {
-		Email string `json:"email"`
-	}
-	v, _ := ctx.Get("user")
-	userClaims, ok := v.(UserClaims)
+	uc, ok := ctx.MustGet("user").(UserClaims)
 	if !ok {
-		ctx.String(http.StatusOK, "server error")
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-	u, err := uh.svc.Profile(ctx, userClaims.Id)
+	// u, err := uh.svc.Profile(ctx, uc.Uid)
+	u, err := uh.svc.FindById(ctx, uc.Uid)
 	if err != nil {
 		// 按理说这里的 id 应该是存在的, 如果不存在, 说明有问题
 		ctx.String(http.StatusOK, "server error")
 	}
-	ctx.JSON(http.StatusOK, ProfileResp{
-		Email: u.Email,
+	type User struct {
+		Nickname string `json:"nickname"`
+		Email    string `json:"email"`
+		AboutMe  string `json:"aboutMe"`
+		Birthday string `json:"birthday"`
+	}
+
+	ctx.JSON(http.StatusOK, User{
+		Nickname: u.Nickname,
+		Email:    u.Email,
+		AboutMe:  u.AboutMe,
+		Birthday: u.Birthday.Format(time.DateOnly),
 	})
 }
