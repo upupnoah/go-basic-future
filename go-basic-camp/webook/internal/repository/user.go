@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"log"
+	"time"
 
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/domain"
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/repository/cache"
@@ -10,8 +12,8 @@ import (
 )
 
 var (
-	ErrUserDuplicateEmail = dao.ErrUserDuplicateEmail
-	ErrUserNotFound       = dao.ErrDataNotFound
+	ErrUserDuplicateUser = dao.ErrUserDuplicate
+	ErrUserNotFound      = dao.ErrDataNotFound
 )
 
 type UserRepository struct {
@@ -19,17 +21,45 @@ type UserRepository struct {
 	cache *cache.UserCache
 }
 
-func NewUserRepository(dao *dao.UserDAO) *UserRepository {
+func NewUserRepository(dao *dao.UserDAO, cache *cache.UserCache) *UserRepository {
 	return &UserRepository{
-		dao: dao,
+		dao:   dao,
+		cache: cache,
+	}
+}
+
+func (repo *UserRepository) toDomain(u dao.User) domain.User {
+	return domain.User{
+		Id:       u.Id,
+		Email:    u.Email.String,
+		Phone:    u.Phone.String,
+		Password: u.Password,
+		AboutMe:  u.AboutMe,
+		Nickname: u.Nickname,
+		Birthday: time.UnixMilli(u.Birthday),
+	}
+}
+
+func (repo *UserRepository) toEntity(u domain.User) dao.User {
+	return dao.User{
+		Id: u.Id,
+		Email: sql.NullString{
+			String: u.Email,
+			Valid:  u.Email != "",
+		},
+		Phone: sql.NullString{
+			String: u.Phone,
+			Valid:  u.Phone != "",
+		},
+		Password: u.Password,
+		Birthday: u.Birthday.UnixMilli(),
+		AboutMe:  u.AboutMe,
+		Nickname: u.Nickname,
 	}
 }
 
 func (ur *UserRepository) Create(ctx context.Context, user domain.User) error {
-	err := ur.dao.Insert(ctx, dao.User{
-		Email:    user.Email,
-		Password: user.Password,
-	})
+	err := ur.dao.Insert(ctx, ur.toEntity(user))
 	return err
 }
 
@@ -47,20 +77,19 @@ func (ur *UserRepository) FindById(ctx context.Context, id int64) (domain.User, 
 	if err != nil {
 		return domain.User{}, err
 	}
-	user = domain.User{
-		Id:       u.Id,
-		Email:    u.Email,
-		Password: u.Password,
-	}
+	user = ur.toDomain(u)
 
 	// if set failed, just ignore (commonly, cache is not critical)
 	// advanced method: consider the redis is down, keep the db alive
 	// we can use rate limit to avoid the db being down
-	
+
 	// redis 如果出问题, 那么压力就会来到数据库上, 这时候可以使用限流来避免数据库被压垮
 
 	// set cache
-	_ = ur.cache.Set(ctx, user)
+	err = ur.cache.Set(ctx, user)
+	if err != nil {
+		log.Println(err)
+	}
 	return user, nil
 }
 
@@ -74,11 +103,7 @@ func (ur *UserRepository) FindByIdV1(ctx context.Context, id int64) (domain.User
 		if err != nil {
 			return domain.User{}, err
 		}
-		user = domain.User{
-			Id:       daoUser.Id,
-			Email:    daoUser.Email,
-			Password: daoUser.Password,
-		}
+		user = ur.toDomain(daoUser)
 		_ = ur.cache.Set(ctx, user)
 		return user, nil
 	default:
@@ -92,9 +117,13 @@ func (ur *UserRepository) FindByEmail(ctx context.Context, email string) (domain
 		return domain.User{}, err
 	}
 
-	return domain.User{
-		Id:       u.Id,
-		Email:    u.Email,
-		Password: u.Password,
-	}, nil
+	return ur.toDomain(u), nil
+}
+
+func (ur *UserRepository) FindByPhone(ctx context.Context, phone string) (domain.User, error) {
+	u, err := ur.dao.FindByPhone(ctx, phone)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return ur.toDomain(u), nil
 }

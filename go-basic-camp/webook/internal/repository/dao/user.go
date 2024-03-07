@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -10,8 +11,8 @@ import (
 )
 
 var (
-	ErrDataNotFound       = gorm.ErrRecordNotFound
-	ErrUserDuplicateEmail = errors.New("user email duplicate")
+	ErrDataNotFound  = gorm.ErrRecordNotFound
+	ErrUserDuplicate = errors.New("user email duplicate")
 )
 
 type UserDAO struct {
@@ -30,7 +31,8 @@ func (ud *UserDAO) Insert(ctx context.Context, u User) error {
 	if mysqlError, ok := err.(*mysql.MySQLError); ok {
 		const uniqueIndexErrNo uint16 = 1062
 		if mysqlError.Number == uniqueIndexErrNo {
-			return ErrUserDuplicateEmail
+			// 邮箱冲突 or 手机号码冲突
+			return ErrUserDuplicate
 		}
 	}
 	return err
@@ -50,11 +52,26 @@ func (ud *UserDAO) FindByEmail(ctx context.Context, email string) (User, error) 
 	return u, err
 }
 
-type User struct {
-	Id       int64  `gorm:"primaryKey;autoIncrement"`
-	Email    string `gorm:"unique"`
-	Password string
+func (ud *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
+	var u User
+	err := ud.db.WithContext(ctx).First(&u, "phone = ?", phone).Error
+	return u, err
+}
 
-	CreatedAt int64 // 统一 UTC +0, 涉及到时间的时候, 再处理时区(转换)
+type User struct {
+	Id    int64          `gorm:"primaryKey;autoIncrement"`
+	Email sql.NullString `gorm:"unique"`
+
+	// 由于密码不需要设置成 unique(唯一索引), 因此他为""(空字符串)也没关系
+	Password string
+	Nickname string `gorm:"type=varchar(128)"`
+
+	Birthday int64  // YYYY-MM-DD
+	AboutMe  string `gorm:"type=varchar(4096)"`
+
+	// 代表这是一个可以为 NULL 的列
+	// 唯一索引允许有多个 NULL, 但是不允许多个 ""
+	Phone     sql.NullString `gorm:"unique"`
+	CreatedAt int64          // 统一 UTC +0, 涉及到时间的时候, 再处理时区(转换)
 	UpdatedAt int64
 }
