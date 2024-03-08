@@ -17,17 +17,25 @@ var (
 	ErrInvalidUserOrPassword = errors.New("invalid email or password")
 )
 
-type UserService struct {
-	repo *repository.UserRepository
+type UserService interface {
+	SignUp(ctx context.Context, user domain.User) error
+	Login(ctx context.Context, user domain.User) (domain.User, error)
+	Profile(ctx context.Context, id int64) (domain.User, error)
+	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	FindById(ctx context.Context, uid int64) (domain.User, error)
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
-	return &UserService{
+type UserServiceV1 struct {
+	repo repository.UserRepository
+}
+
+func NewUserService(repo repository.UserRepository) UserService {
+	return &UserServiceV1{
 		repo: repo,
 	}
 }
 
-func (us *UserService) SignUp(ctx context.Context, user domain.User) error {
+func (us *UserServiceV1) SignUp(ctx context.Context, user domain.User) error {
 	// 处理加密
 	b, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -42,7 +50,7 @@ func (us *UserService) SignUp(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (us *UserService) Login(ctx context.Context, user domain.User) (domain.User, error) {
+func (us *UserServiceV1) Login(ctx context.Context, user domain.User) (domain.User, error) {
 	// find user by email
 	u, err := us.repo.FindByEmail(ctx, user.Email)
 	if err == repository.ErrUserNotFound {
@@ -56,11 +64,11 @@ func (us *UserService) Login(ctx context.Context, user domain.User) (domain.User
 	return u, err
 }
 
-func (us *UserService) Profile(ctx context.Context, id int64) (domain.User, error) {
+func (us *UserServiceV1) Profile(ctx context.Context, id int64) (domain.User, error) {
 	return us.repo.FindById(ctx, id)
 }
 
-func (us *UserService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
+func (us *UserServiceV1) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
 	// First, find user by phone, we believe that the majority of users are existing users.
 	// 快路径
 	user, err := us.repo.FindByPhone(ctx, phone)
@@ -83,7 +91,7 @@ func (us *UserService) FindOrCreate(ctx context.Context, phone string) (domain.U
 	return us.repo.FindByPhone(ctx, phone)
 }
 
-func (us *UserService) FindById(ctx context.Context,
+func (us *UserServiceV1) FindById(ctx context.Context,
 	uid int64) (domain.User, error) {
 	return us.repo.FindById(ctx, uid)
 }

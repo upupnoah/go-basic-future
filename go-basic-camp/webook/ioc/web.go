@@ -12,7 +12,7 @@ import (
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/pkg/ginx/middleware/ratelimit"
 )
 
-func InitWebServer(middlewares []gin.HandlerFunc, userHandler *web.UserHandler) *gin.Engine {
+func InitWebServer(middlewares []gin.HandlerFunc, userHandler web.UserHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHandler.RegisterRoutes(server)

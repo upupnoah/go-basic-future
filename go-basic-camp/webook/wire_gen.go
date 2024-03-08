@@ -22,15 +22,15 @@ func InitWebServer() *gin.Engine {
 	cmdable := ioc.InitRedis()
 	v := ioc.InitGinMiddlewares(cmdable)
 	db := ioc.InitDB()
-	userDAO := dao.NewGormUserDao(db)
+	userDAO := dao.NewUserDAO(db)
 	userCache := cache.NewUserCache(cmdable)
 	userRepository := repository.NewUserRepository(userDAO, userCache)
 	userService := service.NewUserService(userRepository)
 	codeCache := cache.NewCodeCache(cmdable)
 	codeRepository := repository.NewCodeRepository(codeCache)
 	smsService := ioc.InitSMSService()
-	smsCodeService := service.NewCodeService(codeRepository, smsService)
-	userHandler := web.NewUserHandler(userService, smsCodeService)
+	codeService := service.NewCodeService(codeRepository, smsService)
+	userHandler := web.NewUserHandler(userService, codeService)
 	engine := ioc.InitWebServer(v, userHandler)
 	return engine
 }

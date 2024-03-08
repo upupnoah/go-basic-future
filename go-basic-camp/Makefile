@@ -3,5 +3,5 @@
 webook-fe:
 	cd webook-fe && npm run dev
 webook:
-	go run webook/main.go
+	cd webook && go run . 
 all: webook-fe webook

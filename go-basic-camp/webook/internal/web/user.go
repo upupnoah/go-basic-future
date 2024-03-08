@@ -25,17 +25,31 @@ const (
 	bizLogin = "user/login"
 )
 
-type UserHandler struct {
+type UserHandler interface {
+	RegisterRoutes(srv *gin.Engine)
+	LoginSMS(ctx *gin.Context)
+	SendLoginSMSCode(ctx *gin.Context)
+	SignUp(ctx *gin.Context)
+	LoginJWT(ctx *gin.Context)
+	setJWTToken(ctx *gin.Context, uid int64) error
+	Profile(ctx *gin.Context)
+	Edit(ctx *gin.Context)
+	Logout(ctx *gin.Context)
+}
+
+type UserHandlerV1 struct {
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 	phoneRegexExp    *regexp.Regexp
-	svc              *service.UserService
-	codeService      *service.SMSCodeService
+	svc              service.UserService
+	codeService      service.CodeService
 }
 
 // NewUserHandler New UserHandler
-func NewUserHandler(svc *service.UserService, codeSvc *service.SMSCodeService) *UserHandler {
-	return &UserHandler{
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService) UserHandler {
+	// 这里没有使用标准的依赖注入, 因为正则表达式是固定的, 也不需要动态注入
+	// 最多如果有变化的时候, 就在上面 const 里面修改
+	return &UserHandlerV1{
 		emailRegexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 		phoneRegexExp:    regexp.MustCompile(phoneRegexPattern, regexp.None),
@@ -44,7 +58,7 @@ func NewUserHandler(svc *service.UserService, codeSvc *service.SMSCodeService) *
 	}
 }
 
-func (uh *UserHandler) RegisterRoutes(srv *gin.Engine) {
+func (uh *UserHandlerV1) RegisterRoutes(srv *gin.Engine) {
 	// srv.POST("/api/user", u.SignUp) // User sign up
 	// srv.POST("/api/user/login", u.Login) // User login
 	ug := srv.Group("/users")
@@ -58,7 +72,7 @@ func (uh *UserHandler) RegisterRoutes(srv *gin.Engine) {
 	ug.POST("/login_sms", uh.LoginSMS)
 }
 
-func (uh *UserHandler) LoginSMS(ctx *gin.Context) {
+func (uh *UserHandlerV1) LoginSMS(ctx *gin.Context) {
 	type Req struct {
 		Phone string `json:"phone"`
 		Code  string `json:"code"`
@@ -107,7 +121,7 @@ func (uh *UserHandler) LoginSMS(ctx *gin.Context) {
 	})
 }
 
-func (uh *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
+func (uh *UserHandlerV1) SendLoginSMSCode(ctx *gin.Context) {
 	type Req struct {
 		Phone string `json:"phone"`
 	}
@@ -131,7 +145,7 @@ func (uh *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 		})
 		return
 	}
-	
+
 	err = uh.codeService.Send(ctx, bizLogin, req.Phone)
 	if err != nil {
 		if err == cache.ErrCodeSendTooMany {
@@ -152,7 +166,7 @@ func (uh *UserHandler) SendLoginSMSCode(ctx *gin.Context) {
 	})
 }
 
-func (uh *UserHandler) SignUp(ctx *gin.Context) {
+func (uh *UserHandlerV1) SignUp(ctx *gin.Context) {
 	type SingUpReq struct {
 		Email           string `json:"email"`
 		ConfirmPassword string `json:"confirm_password"`
@@ -200,7 +214,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "signup success")
 }
 
-func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
+func (uh *UserHandlerV1) LoginJWT(ctx *gin.Context) {
 	type LoginReq struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -227,7 +241,7 @@ func (uh *UserHandler) LoginJWT(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "login success")
 }
 
-func (*UserHandler) setJWTToken(ctx *gin.Context, uid int64) error {
+func (*UserHandlerV1) setJWTToken(ctx *gin.Context, uid int64) error {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		UserClaims{
 			Uid:       uid,
@@ -279,14 +293,14 @@ func (*UserHandler) setJWTToken(ctx *gin.Context, uid int64) error {
 // 	ctx.String(http.StatusOK, "login success")
 // }
 
-func (uh *UserHandler) Logout(ctx *gin.Context) {
+func (uh *UserHandlerV1) Logout(ctx *gin.Context) {
 
 }
 
-func (uh *UserHandler) Edit(ctx *gin.Context) {
+func (uh *UserHandlerV1) Edit(ctx *gin.Context) {
 }
 
-func (uh *UserHandler) Profile(ctx *gin.Context) {
+func (uh *UserHandlerV1) Profile(ctx *gin.Context) {
 	uc, ok := ctx.MustGet("user").(UserClaims)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusUnauthorized)

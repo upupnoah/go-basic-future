@@ -11,13 +11,13 @@ import (
 	"github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/web"
 )
 
-type LoginJWTMiddlewareBuilder struct {
-	ignorePaths map[string]struct{}
-}
-
 type LoginJWTMiddleware interface {
 	CheckLoginJWT() gin.HandlerFunc
 	SetIgnorePaths(paths ...string) LoginJWTMiddleware
+}
+
+type LoginJWTMiddlewareBuilder struct {
+	ignorePaths map[string]struct{}
 }
 
 func NewLoginJWTMiddlewareBuilder() *LoginJWTMiddlewareBuilder {
