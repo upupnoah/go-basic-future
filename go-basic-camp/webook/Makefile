@@ -1,11 +1,11 @@
 .PHONY: docker port-forward usage
 build-go-docker-dev:
 	rm webook-server || true
-	GOOS=linux GOARCH=amd64 go build -o webook-server main.go
+	GOOS=linux GOARCH=amd64 go build -o webook-server .
 	docker build -t noahouo/webook-server-dev:${VERSION} .
 build-go-docker-k8s:
 	rm webook-server || true
-	GOOS=linux GOARCH=amd64 go build -tags=k8s -o webook-server main.go
+	GOOS=linux GOARCH=amd64 go build -tags=k8s -o webook-server .
 	docker build -t noahouo/webook-server-k8s:${VERSION} .
 port-forward:
 	kubectl port-forward service/webook-server 8099:8099 &
