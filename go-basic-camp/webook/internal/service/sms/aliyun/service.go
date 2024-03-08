@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	dysmsapi "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
+	aliSMS "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 
@@ -14,14 +14,14 @@ import (
 )
 
 type Service struct {
-	client   *dysmsapi.Client
+	client   *aliSMS.Client
 	signName *string
 }
 
 func (s *Service) Send(ctx context.Context, templateId string, templateArgs []string, numbers ...string) error {
 	phoneNumbers := strings.Join(numbers, ",")
 	templateParam := strings.Join(templateArgs, ",")
-	sendSmsRequest := &dysmsapi.SendSmsRequest{
+	sendSmsRequest := &aliSMS.SendSmsRequest{
 		SignName:      s.signName,
 		TemplateCode:  tea.String(templateId),
 		PhoneNumbers:  tea.String(phoneNumbers),
@@ -42,7 +42,7 @@ func (s *Service) SendV1(ctx context.Context, templateId string, templateArgs an
 		return err
 	}
 	phoneNumbers := strings.Join(numbers, ",")
-	sendSmsRequest := &dysmsapi.SendSmsRequest{
+	sendSmsRequest := &aliSMS.SendSmsRequest{
 		SignName:      s.signName,
 		TemplateCode:  tea.String(templateId),
 		PhoneNumbers:  tea.String(phoneNumbers),
@@ -67,7 +67,7 @@ func (s *Service) SendV2(ctx context.Context, templateId string, templateArgs []
 	if err != nil {
 		return err
 	}
-	sendSmsRequest := &dysmsapi.SendSmsRequest{
+	sendSmsRequest := &aliSMS.SendSmsRequest{
 		SignName:      s.signName,
 		TemplateCode:  tea.String(templateId),
 		PhoneNumbers:  tea.String(phoneNumbers),
@@ -82,7 +82,7 @@ func (s *Service) SendV2(ctx context.Context, templateId string, templateArgs []
 	return err
 }
 
-func NewService(client *dysmsapi.Client) *Service {
+func NewService(client *aliSMS.Client) *Service {
 	return &Service{
 		client: client,
 	}

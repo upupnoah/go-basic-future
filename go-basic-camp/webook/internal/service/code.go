@@ -17,12 +17,17 @@ var (
 // 短信 Template ID (对应云平台的模板 ID)
 const codeTplId = "112234"
 
+type CodeService interface {
+	Send(ctx context.Context, biz, phone string) error
+	Verify(ctx context.Context, biz, phone, code string) (bool, error)
+}
+
 type SMSCodeService struct {
 	sms  sms.Service
 	repo repository.CodeRepository
 }
 
-func NewCodeService(repo repository.CodeRepository, sms sms.Service) *SMSCodeService {
+func NewCodeService(repo repository.CodeRepository, sms sms.Service) CodeService {
 	return &SMSCodeService{
 		sms:  sms,
 		repo: repo,

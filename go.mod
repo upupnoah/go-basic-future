@@ -16,6 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.6.0
+	github.com/google/wire v0.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gpmgo/gopm v0.6.5
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15

@@ -15,19 +15,28 @@ var (
 	ErrUserDuplicate = errors.New("user email duplicate")
 )
 
-type UserDAO struct {
+type UserDAO interface {
+	Insert(ctx context.Context, u User) error
+	FindById(ctx context.Context, id int64) (User, error)
+	FindByEmail(ctx context.Context, email string) (User, error)
+	FindByPhone(ctx context.Context, phone string) (User, error)
+}
+
+type GormUserDAO struct {
 	db *gorm.DB
 }
 
-func NewUserDAO(db *gorm.DB) *UserDAO {
-	return &UserDAO{db: db}
+func NewUserDAO(db *gorm.DB) UserDAO {
+	return &GormUserDAO{
+		db: db,
+	}
 }
 
-func (ud *UserDAO) Insert(ctx context.Context, u User) error {
+func (gud *GormUserDAO) Insert(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.CreatedAt = now
 	u.UpdatedAt = now
-	err := ud.db.WithContext(ctx).Create(&u).Error
+	err := gud.db.WithContext(ctx).Create(&u).Error
 	if mysqlError, ok := err.(*mysql.MySQLError); ok {
 		const uniqueIndexErrNo uint16 = 1062
 		if mysqlError.Number == uniqueIndexErrNo {
@@ -38,23 +47,23 @@ func (ud *UserDAO) Insert(ctx context.Context, u User) error {
 	return err
 }
 
-func (ud *UserDAO) FindById(ctx context.Context, id int64) (User, error) {
+func (gud *GormUserDAO) FindById(ctx context.Context, id int64) (User, error) {
 	var u User
-	err := ud.db.WithContext(ctx).First(&u, "id = ?", id).Error
+	err := gud.db.WithContext(ctx).First(&u, "id = ?", id).Error
 	return u, err
 }
 
-func (ud *UserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
+func (gud *GormUserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
 	var u User
 	// 两种都可以, 第一种可读性好一些, 第二种简洁
 	// err := ud.db.WithContext(ctx).Where("email = ?", email).First(&u).Error
-	err := ud.db.WithContext(ctx).First(&u, "email = ?", email).Error
+	err := gud.db.WithContext(ctx).First(&u, "email = ?", email).Error
 	return u, err
 }
 
-func (ud *UserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
+func (gud *GormUserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
 	var u User
-	err := ud.db.WithContext(ctx).First(&u, "phone = ?", phone).Error
+	err := gud.db.WithContext(ctx).First(&u, "phone = ?", phone).Error
 	return u, err
 }
 

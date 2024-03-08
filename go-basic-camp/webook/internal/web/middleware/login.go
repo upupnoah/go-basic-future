@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type LoginMiddlewareBuilder struct {
-	ignorePaths map[string]struct{}
-}
-
 type LoginMiddleware interface {
 	CheckLogin() gin.HandlerFunc
 	SetIgnorePaths(paths ...string) LoginMiddleware
+}
+
+type LoginMiddlewareBuilder struct {
+	ignorePaths map[string]struct{}
 }
 
 func NewLoginMiddlewareBuilder() *LoginMiddlewareBuilder {

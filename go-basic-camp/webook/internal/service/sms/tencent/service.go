@@ -6,19 +6,19 @@ import (
 
 	"github.com/ecodeclub/ekit"
 	"github.com/ecodeclub/ekit/slice"
-	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
+	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
 
 	mysms "github.com/upupnoah/go-basic-future/go-basic-camp/webook/internal/service/sms"
 )
 
 type Service struct {
-	client   *sms.Client
+	client   *tencentSMS.Client
 	appId    *string
 	signName *string
 }
 
 func (s *Service) Send(ctx context.Context, templateId string, templateArgs []string, numbers ...string) error {
-	request := sms.NewSendSmsRequest()
+	request := tencentSMS.NewSendSmsRequest()
 
 	/* 短信应用ID: 短信SdkAppId在 [短信控制台] 添加应用后生成的实际SdkAppId，示例如1400006666 */
 	// 应用 ID 可前往 [短信控制台](https://console.cloud.tencent.com/smsv2/app-manage) 查看
@@ -55,7 +55,7 @@ func (s *Service) Send(ctx context.Context, templateId string, templateArgs []st
 }
 
 func (s *Service) SendV1(ctx context.Context, templateId string, templateArgs any, numbers ...string) error {
-	request := sms.NewSendSmsRequest()
+	request := tencentSMS.NewSendSmsRequest()
 
 	/* 短信应用ID: 短信SdkAppId在 [短信控制台] 添加应用后生成的实际SdkAppId，示例如1400006666 */
 	// 应用 ID 可前往 [短信控制台](https://console.cloud.tencent.com/smsv2/app-manage) 查看
@@ -92,7 +92,7 @@ func (s *Service) SendV1(ctx context.Context, templateId string, templateArgs an
 }
 
 func (s *Service) SendV2(ctx context.Context, templateId string, templateArgs []mysms.NamedArg, numbers ...string) error {
-	request := sms.NewSendSmsRequest()
+	request := tencentSMS.NewSendSmsRequest()
 
 	/* 短信应用ID: 短信SdkAppId在 [短信控制台] 添加应用后生成的实际SdkAppId，示例如1400006666 */
 	// 应用 ID 可前往 [短信控制台](https://console.cloud.tencent.com/smsv2/app-manage) 查看
@@ -139,7 +139,7 @@ func toStringPtrSlice(strSlice []string) []*string {
 	})
 }
 
-func NewService(client *sms.Client, appId string, signName string) *Service {
+func NewService(client *tencentSMS.Client, appId string, signName string) *Service {
 	return &Service{
 		client:   client,
 		appId:    ekit.ToPtr(appId),
