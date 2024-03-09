@@ -107,7 +107,6 @@ func (uh *UserHandlerV1) LoginSMS(ctx *gin.Context) {
 		})
 		return
 	}
-
 	err = uh.setJWTToken(ctx, u.Id)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
@@ -188,6 +187,10 @@ func (uh *UserHandlerV1) SignUp(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Invalid email")
 		return
 	}
+	if req.Password != req.ConfirmPassword {
+		ctx.String(http.StatusOK, "Password and confirm password are not the same")
+		return
+	}
 	matched, err = uh.passwordRegexExp.MatchString(req.Password)
 	if err != nil {
 		ctx.String(http.StatusOK, "System error")
@@ -208,7 +211,8 @@ func (uh *UserHandlerV1) SignUp(ctx *gin.Context) {
 		return
 	}
 	if err != nil {
-		ctx.String(http.StatusOK, "server error, signup failed")
+		ctx.String(http.StatusOK, "System error")
+		return
 	}
 
 	ctx.String(http.StatusOK, "signup success")
@@ -301,6 +305,13 @@ func (uh *UserHandlerV1) Edit(ctx *gin.Context) {
 }
 
 func (uh *UserHandlerV1) Profile(ctx *gin.Context) {
+	type Profile struct {
+		Nickname string `json:"nickname"`
+		Email    string `json:"email"`
+		Phone    string `json:"phone"`
+		AboutMe  string `json:"aboutMe"`
+		Birthday string `json:"birthday"`
+	}
 	uc, ok := ctx.MustGet("user").(UserClaims)
 	if !ok {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -312,16 +323,11 @@ func (uh *UserHandlerV1) Profile(ctx *gin.Context) {
 		// 按理说这里的 id 应该是存在的, 如果不存在, 说明有问题
 		ctx.String(http.StatusOK, "server error")
 	}
-	type User struct {
-		Nickname string `json:"nickname"`
-		Email    string `json:"email"`
-		AboutMe  string `json:"aboutMe"`
-		Birthday string `json:"birthday"`
-	}
 
-	ctx.JSON(http.StatusOK, User{
+	ctx.JSON(http.StatusOK, Profile{
 		Nickname: u.Nickname,
 		Email:    u.Email,
+		Phone:    u.Phone,
 		AboutMe:  u.AboutMe,
 		Birthday: u.Birthday.Format(time.DateOnly),
 	})
